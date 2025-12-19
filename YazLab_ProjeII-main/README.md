@@ -1,1 +1,0 @@
-safasdfasfasfas # YazLab_ProjeII
