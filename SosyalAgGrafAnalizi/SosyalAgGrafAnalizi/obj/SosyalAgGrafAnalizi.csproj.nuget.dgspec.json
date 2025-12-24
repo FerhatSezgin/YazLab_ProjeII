@@ -1,20 +1,24 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\ziyar\\Desktop\\YazLab_ProjeII-main1\\YazLab_ProjeII-main\\SosyalAgGrafAnalizi\\SosyalAgGrafAnalizi\\SosyalAgGrafAnalizi.csproj": {}
+    "C:\\Kerem\\YazLab_ProjeII\\SosyalAgGrafAnalizi\\SosyalAgGrafAnalizi\\SosyalAgGrafAnalizi.csproj": {}
   },
   "projects": {
-    "C:\\Users\\ziyar\\Desktop\\YazLab_ProjeII-main1\\YazLab_ProjeII-main\\SosyalAgGrafAnalizi\\SosyalAgGrafAnalizi\\SosyalAgGrafAnalizi.csproj": {
+    "C:\\Kerem\\YazLab_ProjeII\\SosyalAgGrafAnalizi\\SosyalAgGrafAnalizi\\SosyalAgGrafAnalizi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\ziyar\\Desktop\\YazLab_ProjeII-main1\\YazLab_ProjeII-main\\SosyalAgGrafAnalizi\\SosyalAgGrafAnalizi\\SosyalAgGrafAnalizi.csproj",
+        "projectUniqueName": "C:\\Kerem\\YazLab_ProjeII\\SosyalAgGrafAnalizi\\SosyalAgGrafAnalizi\\SosyalAgGrafAnalizi.csproj",
         "projectName": "SosyalAgGrafAnalizi",
-        "projectPath": "C:\\Users\\ziyar\\Desktop\\YazLab_ProjeII-main1\\YazLab_ProjeII-main\\SosyalAgGrafAnalizi\\SosyalAgGrafAnalizi\\SosyalAgGrafAnalizi.csproj",
-        "packagesPath": "C:\\Users\\ziyar\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\ziyar\\Desktop\\YazLab_ProjeII-main1\\YazLab_ProjeII-main\\SosyalAgGrafAnalizi\\SosyalAgGrafAnalizi\\obj\\",
+        "projectPath": "C:\\Kerem\\YazLab_ProjeII\\SosyalAgGrafAnalizi\\SosyalAgGrafAnalizi\\SosyalAgGrafAnalizi.csproj",
+        "packagesPath": "C:\\Users\\kerem\\.nuget\\packages\\",
+        "outputPath": "C:\\Kerem\\YazLab_ProjeII\\SosyalAgGrafAnalizi\\SosyalAgGrafAnalizi\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "C:\\Users\\ziyar\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\kerem\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -70,7 +74,7 @@
               "privateAssets": "none"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.306/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

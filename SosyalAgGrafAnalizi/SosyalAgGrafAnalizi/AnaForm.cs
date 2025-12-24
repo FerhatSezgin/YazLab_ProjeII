@@ -1,5 +1,4 @@
 using SosyalAgGrafAnalizi.Algoritmalar;
-using SosyalAgGrafAnalizi.Algoritmalar;
 using System.Drawing;
 using System.Globalization;
 using SosyalAgGrafAnalizi.GrafYapisi;
@@ -68,7 +67,7 @@ namespace SosyalAgGrafAnalizi
         private int OkuInt(TextBox tb, string alanAdi)
         {
             if (!int.TryParse(tb.Text.Trim(), out int deger))
-                throw new InvalidOperationException($"{alanAdi} sayý olmalý.");
+                throw new InvalidOperationException($"{alanAdi} sayÄ± olmalÄ±.");
             return deger;
         }
 
@@ -76,7 +75,7 @@ namespace SosyalAgGrafAnalizi
         {
             var text = tb.Text.Trim().Replace(',', '.');
             if (!double.TryParse(text, NumberStyles.Any, CultureInfo.InvariantCulture, out double deger))
-                throw new InvalidOperationException($"{alanAdi} sayý olmalý. Örnek: 0.8");
+                throw new InvalidOperationException($"{alanAdi} sayÄ± olmalÄ±. Ã–rnek: 0.8");
             return deger;
         }
 
@@ -107,7 +106,7 @@ namespace SosyalAgGrafAnalizi
                 var liste = _graf.KomsulukListesiOlustur();
                 rtbCikti.Clear();
 
-                rtbCikti.AppendText("Komþuluk Listesi:\n");
+                rtbCikti.AppendText("KomÅŸuluk Listesi:\n");
                 foreach (var kv in liste)
                 {
                     rtbCikti.AppendText($"{kv.Key}: {string.Join(",", kv.Value)}\n");
@@ -124,22 +123,22 @@ namespace SosyalAgGrafAnalizi
         {
             try
             {
-                int id = OkuInt(txtDugumId, "Düðüm ID");
+                int id = OkuInt(txtDugumId, "DÃ¼ÄŸÃ¼m ID");
                 string ad = txtDugumAd.Text.Trim();
                 if (string.IsNullOrWhiteSpace(ad))
-                    throw new InvalidOperationException("Ad boþ olamaz.");
+                    throw new InvalidOperationException("Ad boÅŸ olamaz.");
 
                 double aktiflik = OkuDouble(txtAktiflik, "Aktiflik");
                 if (aktiflik < 0 || aktiflik > 1)
-                    throw new InvalidOperationException("Aktiflik 0 ile 1 arasýnda olmalý.");
+                    throw new InvalidOperationException("Aktiflik 0 ile 1 arasÄ±nda olmalÄ±.");
 
-                double etkilesim = OkuDouble(txtEtkilesim, "Etkileþim");
-                if (etkilesim < 0) throw new InvalidOperationException("Etkileþim negatif olamaz.");
+                double etkilesim = OkuDouble(txtEtkilesim, "EtkileÅŸim");
+                if (etkilesim < 0) throw new InvalidOperationException("EtkileÅŸim negatif olamaz.");
 
                 var dugum = new Dugum(id, ad, aktiflik, etkilesim, RastgeleKonum());
                 _graf.DugumEkle(dugum);
 
-                rtbCikti.AppendText($"Düðüm eklendi: {dugum}\n");
+                rtbCikti.AppendText($"DÃ¼ÄŸÃ¼m eklendi: {dugum}\n");
             }
             catch (Exception ex)
             {
@@ -154,8 +153,8 @@ namespace SosyalAgGrafAnalizi
         {
             try
             {
-                int a = OkuInt(txtBaslangicId, "Baþlangýç ID");
-                int b = OkuInt(txtBitisId, "Bitiþ ID");
+                int a = OkuInt(txtBaslangicId, "BaÅŸlangÄ±Ã§ ID");
+                int b = OkuInt(txtBitisId, "BitiÅŸ ID");
 
                 _graf.KenarEkle(a, b);
 
@@ -174,28 +173,28 @@ namespace SosyalAgGrafAnalizi
         {
             try
             {
-                int id = OkuInt(txtDugumId, "Düðüm ID");
+                int id = OkuInt(txtDugumId, "DÃ¼ÄŸÃ¼m ID");
                 string ad = txtDugumAd.Text.Trim();
                 if (string.IsNullOrWhiteSpace(ad))
-                    throw new InvalidOperationException("Ad boþ olamaz.");
+                    throw new InvalidOperationException("Ad boÅŸ olamaz.");
 
                 double aktiflik = OkuDouble(txtAktiflik, "Aktiflik");
                 if (aktiflik < 0 || aktiflik > 1)
-                    throw new InvalidOperationException("Aktiflik 0 ile 1 arasýnda olmalý.");
+                    throw new InvalidOperationException("Aktiflik 0 ile 1 arasÄ±nda olmalÄ±.");
 
-                double etkilesim = OkuDouble(txtEtkilesim, "Etkileþim");
+                double etkilesim = OkuDouble(txtEtkilesim, "EtkileÅŸim");
                 if (etkilesim < 0)
-                    throw new InvalidOperationException("Etkileþim negatif olamaz.");
+                    throw new InvalidOperationException("EtkileÅŸim negatif olamaz.");
 
                 var eski = _graf.DugumGetir(id);
                 if (eski == null)
-                    throw new InvalidOperationException($"Düðüm bulunamadý: {id}");
+                    throw new InvalidOperationException($"DÃ¼ÄŸÃ¼m bulunamadÄ±: {id}");
 
-                // Konumu koruyoruz (çizimde önemli olacak)
+                // Konumu koruyoruz (Ã§izimde Ã¶nemli olacak)
                 var yeni = new Dugum(id, ad, aktiflik, etkilesim, eski.Konum);
                 _graf.DugumGuncelle(yeni);
 
-                rtbCikti.AppendText($"Düðüm güncellendi: {yeni}\n");
+                rtbCikti.AppendText($"DÃ¼ÄŸÃ¼m gÃ¼ncellendi: {yeni}\n");
             }
             catch (Exception ex)
             {
@@ -210,10 +209,10 @@ namespace SosyalAgGrafAnalizi
         {
             try
             {
-                int id = OkuInt(txtDugumId, "Düðüm ID");
+                int id = OkuInt(txtDugumId, "DÃ¼ÄŸÃ¼m ID");
                 _graf.DugumSil(id);
 
-                rtbCikti.AppendText($"Düðüm silindi: {id}\n");
+                rtbCikti.AppendText($"DÃ¼ÄŸÃ¼m silindi: {id}\n");
             }
             catch (Exception ex)
             {
@@ -228,8 +227,8 @@ namespace SosyalAgGrafAnalizi
         {
             try
             {
-                int a = OkuInt(txtBaslangicId, "Baþlangýç ID");
-                int b = OkuInt(txtBitisId, "Bitiþ ID");
+                int a = OkuInt(txtBaslangicId, "BaÅŸlangÄ±Ã§ ID");
+                int b = OkuInt(txtBitisId, "BitiÅŸ ID");
 
                 _graf.KenarSil(a, b);
 
@@ -249,8 +248,8 @@ namespace SosyalAgGrafAnalizi
             try
             {
                 using var sfd = new SaveFileDialog();
-                sfd.Filter = "JSON Dosyasý (*.json)|*.json";
-                sfd.Title = "Grafý JSON Olarak Kaydet";
+                sfd.Filter = "JSON DosyasÄ± (*.json)|*.json";
+                sfd.Title = "GrafÄ± JSON Olarak Kaydet";
                 sfd.FileName = "graf.json";
 
                 if (sfd.ShowDialog() == DialogResult.OK)
@@ -270,15 +269,15 @@ namespace SosyalAgGrafAnalizi
             try
             {
                 using var ofd = new OpenFileDialog();
-                ofd.Filter = "JSON Dosyasý (*.json)|*.json";
-                ofd.Title = "Graf JSON Yükle";
+                ofd.Filter = "JSON DosyasÄ± (*.json)|*.json";
+                ofd.Title = "Graf JSON YÃ¼kle";
 
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
                     _graf = JsonKayitYukleyici.Yukle(ofd.FileName);
-                    rtbCikti.AppendText($"JSON yüklendi: {ofd.FileName}\n");
+                    rtbCikti.AppendText($"JSON yÃ¼klendi: {ofd.FileName}\n");
 
-                    // Hemen komþuluk listesini de gösterelim
+                    // Hemen komÅŸuluk listesini de gÃ¶sterelim
                     btnKomsulukListele_Click(null, EventArgs.Empty);
                 }
             }
@@ -301,18 +300,20 @@ namespace SosyalAgGrafAnalizi
             var g = e.Graphics;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
+            // Canvas arka plan temizliÄŸi (Ã¶nlem olarak, Panel BackColor yetmeyebilir)
+            // g.Clear(Color.FromArgb(15, 23, 42)); // Bu paint iÃ§inde Ã§aÄŸrÄ±lÄ±nca her ÅŸeyi siler, Panel'in kendi boyamasÄ±nÄ± ezer.
+
             var dugumler = _graf.TumDugumleriGetir();
 
-            // 1) Kenarlarý çiz (yönsüz)
-            using var penEdge = new Pen(Color.Gray, 2);
-            using var penPath = new Pen(Color.Red, 4);
-
+            // 1) KenarlarÄ± Ã§iz (yÃ¶nsÃ¼z) - Dark theme iÃ§in daha aÃ§Ä±k renk
+            using var penEdge = new Pen(Color.FromArgb(100, 200, 220), 2); // Cam gÃ¶beÄŸi, transparan gibi
+            using var penPath = new Pen(Color.Gold, 4); // Yol vurgusu sarÄ±/altÄ±n
 
             foreach (var d in dugumler)
             {
                 foreach (var komsuId in _graf.KomsulariGetir(d.Id))
                 {
-                    // ayný kenarý iki kez çizmemek için sadece küçük->büyük çiz
+                    // aynÄ± kenarÄ± iki kez Ã§izmemek iÃ§in sadece kÃ¼Ã§Ã¼k->bÃ¼yÃ¼k Ã§iz
                     if (d.Id < komsuId)
                     {
                         var k = _graf.DugumGetir(komsuId);
@@ -328,14 +329,15 @@ namespace SosyalAgGrafAnalizi
                 }
             }
 
-            // 2) Düðümleri çiz
+            // 2) DÃ¼ÄŸÃ¼mleri Ã§iz
             foreach (var d in dugumler)
             {
                 bool secili = _seciliDugumId.HasValue && _seciliDugumId.Value == d.Id;
 
                 var renk = secili ? Color.Orange : DugumRengiGetir(d.Id);
                 using var brush = new SolidBrush(renk);
-                using var penNode = new Pen(Color.Black, secili ? 3 : 2);
+                // DÃ¼ÄŸÃ¼m Ã§erÃ§evesi beyaz olsun (koyu zemin Ã¼stÃ¼nde)
+                using var penNode = new Pen(Color.White, secili ? 3 : 2);
 
                 float x = d.Konum.X - DugumYaricap;
                 float y = d.Konum.Y - DugumYaricap;
@@ -345,7 +347,7 @@ namespace SosyalAgGrafAnalizi
                 g.FillEllipse(brush, x, y, w, h);
                 g.DrawEllipse(penNode, x, y, w, h);
 
-                // ID yaz
+                // ID yaz - DÃ¼ÄŸÃ¼m iÃ§i aÃ§Ä±k renk olduÄŸu iÃ§in yazÄ± Siyah kalmalÄ±
                 var text = d.Id.ToString();
                 var size = g.MeasureString(text, Font);
                 g.DrawString(text, Font, Brushes.Black,
@@ -357,7 +359,7 @@ namespace SosyalAgGrafAnalizi
 
         private void pnlCanvas_MouseClick(object sender, MouseEventArgs e)
         {
-            // Týklanan nokta hangi düðüme yakýn?
+            // TÄ±klanan nokta hangi dÃ¼ÄŸÃ¼me yakÄ±n?
             var dugumler = _graf.TumDugumleriGetir();
             int? bulundu = null;
 
@@ -385,17 +387,17 @@ namespace SosyalAgGrafAnalizi
                         $"ID: {d.Id}\n" +
                         $"Ad: {d.Ad}\n" +
                         $"Aktiflik: {d.Aktiflik}\n" +
-                        $"Etkileþim: {d.Etkilesim}\n" +
-                        $"Baðlantý Sayýsý: {d.BaglantiSayisi()}\n" +
-                        $"Komþular: {string.Join(",", d.Komsular)}";
+                        $"EtkileÅŸim: {d.Etkilesim}\n" +
+                        $"BaÄŸlantÄ± SayÄ±sÄ±: {d.BaglantiSayisi()}\n" +
+                        $"KomÅŸular: {string.Join(",", d.Komsular)}";
                 }
             }
             else
             {
-                lblSeciliDugumBilgi.Text = "Seçili düðüm yok";
+                lblSeciliDugumBilgi.Text = "SeÃ§ili dÃ¼ÄŸÃ¼m yok";
             }
 
-            pnlCanvas.Invalidate(); // yeniden çiz
+            pnlCanvas.Invalidate(); // yeniden Ã§iz
         }
 
 
@@ -404,10 +406,10 @@ namespace SosyalAgGrafAnalizi
         {
             try
             {
-                int baslangic = OkuInt(txtBaslangicId, "Baþlangýç ID");
+                int baslangic = OkuInt(txtBaslangicId, "BaÅŸlangÄ±Ã§ ID");
                 var sonuc = DfsAlgoritmasi.Calistir(_graf, baslangic);
 
-                rtbCikti.AppendText($"DFS ({baslangic}) sýrasý: {string.Join(" -> ", sonuc)}\n");
+                rtbCikti.AppendText($"DFS ({baslangic}) sÄ±rasÄ±: {string.Join(" -> ", sonuc)}\n");
             }
             catch (Exception ex)
             {
@@ -419,10 +421,10 @@ namespace SosyalAgGrafAnalizi
         {
             try
             {
-                int baslangic = OkuInt(txtBaslangicId, "Baþlangýç ID");
+                int baslangic = OkuInt(txtBaslangicId, "BaÅŸlangÄ±Ã§ ID");
                 var sonuc = BfsAlgoritmasi.Calistir(_graf, baslangic);
 
-                rtbCikti.AppendText($"BFS ({baslangic}) sýrasý: {string.Join(" -> ", sonuc)}\n");
+                rtbCikti.AppendText($"BFS ({baslangic}) sÄ±rasÄ±: {string.Join(" -> ", sonuc)}\n");
             }
             catch (Exception ex)
             {
@@ -434,14 +436,14 @@ namespace SosyalAgGrafAnalizi
         {
             try
             {
-                int bas = OkuInt(txtBaslangicId, "Baþlangýç ID");
+                int bas = OkuInt(txtBaslangicId, "BaÅŸlangÄ±Ã§ ID");
                 int hedef = OkuInt(txtBitisId, "Hedef ID");
 
                 var sonuc = DijkstraAlgoritmasi.Calistir(_graf, bas, hedef);
 
                 if (sonuc.Yol.Count == 0)
                 {
-                    rtbCikti.AppendText($"Dijkstra: Yol bulunamadý ({bas} -> {hedef})\n");
+                    rtbCikti.AppendText($"Dijkstra: Yol bulunamadÄ± ({bas} -> {hedef})\n");
                     _vurguluKenarlar.Clear();
                     pnlCanvas.Invalidate();
                     return;
@@ -460,14 +462,14 @@ namespace SosyalAgGrafAnalizi
         {
             try
             {
-                int bas = OkuInt(txtBaslangicId, "Baþlangýç ID");
+                int bas = OkuInt(txtBaslangicId, "BaÅŸlangÄ±Ã§ ID");
                 int hedef = OkuInt(txtBitisId, "Hedef ID");
 
                 var sonuc = AStarAlgoritmasi.Calistir(_graf, bas, hedef);
 
                 if (sonuc.Yol.Count == 0)
                 {
-                    rtbCikti.AppendText($"A*: Yol bulunamadý ({bas} -> {hedef})\n");
+                    rtbCikti.AppendText($"A*: Yol bulunamadÄ± ({bas} -> {hedef})\n");
                     _vurguluKenarlar.Clear();
                     pnlCanvas.Invalidate();
                     return;
@@ -488,8 +490,8 @@ namespace SosyalAgGrafAnalizi
             {
                 var ilk5 = MerkezilikAlgoritmasi.EnEtkiliIlk5(_graf);
 
-                rtbCikti.AppendText("=== En Etkili 5 Kullanýcý (Degree Centrality) ===\n");
-                rtbCikti.AppendText(string.Format("{0,-5}{1,-10}{2,-10}\n", "Sýra", "DüðümID", "Derece"));
+                rtbCikti.AppendText("=== En Etkili 5 KullanÄ±cÄ± (Degree Centrality) ===\n");
+                rtbCikti.AppendText(string.Format("{0,-5}{1,-10}{2,-10}\n", "SÄ±ra", "DÃ¼ÄŸÃ¼m ID", "Derece"));
                 rtbCikti.AppendText(new string('-', 30) + "\n");
 
                 int sira = 1;
@@ -521,12 +523,12 @@ namespace SosyalAgGrafAnalizi
 
                 var bilesenSonuclari = WelshPowellRenklendirme.Calistir(_graf);
 
-                rtbCikti.AppendText("=== Welsh–Powell Graf Renklendirme ===\n");
+                rtbCikti.AppendText("=== Welshâ€“Powell Graf Renklendirme ===\n");
 
                 foreach (var b in bilesenSonuclari)
                 {
-                    rtbCikti.AppendText($"Bileþen {b.BilesenNo} | Kullanýlan renk sayýsý: {b.KullanilanRenkSayisi}\n");
-                    rtbCikti.AppendText(string.Format("{0,-10}{1,-10}\n", "DüðümID", "RenkNo"));
+                    rtbCikti.AppendText($"BileÅŸen {b.BilesenNo} | KullanÄ±lan renk sayÄ±sÄ±: {b.KullanilanRenkSayisi}\n");
+                    rtbCikti.AppendText(string.Format("{0,-10}{1,-10}\n", "DÃ¼ÄŸÃ¼m ID", "Renk No"));
                     rtbCikti.AppendText(new string('-', 22) + "\n");
 
                     foreach (var kv in b.DugumRenkleri.OrderBy(x => x.Key))
@@ -544,6 +546,16 @@ namespace SosyalAgGrafAnalizi
             {
                 MessageBox.Show(ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+        }
+
+        private void AnaForm_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnCiktiTemizle_Click(object sender, EventArgs e)
+        {
+            rtbCikti.Clear();
         }
     }
 }
