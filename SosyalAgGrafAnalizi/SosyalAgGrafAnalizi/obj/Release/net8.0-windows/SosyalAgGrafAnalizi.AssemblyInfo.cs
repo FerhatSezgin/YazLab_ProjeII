@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("SosyalAgGrafAnalizi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+921be4e70bd7184d16aa2ed93a8ae12d4a112a19")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+66cee98b52d20eb670b1aa3bc1b151ebd5ae1c9a")]
 [assembly: System.Reflection.AssemblyProductAttribute("SosyalAgGrafAnalizi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("SosyalAgGrafAnalizi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
