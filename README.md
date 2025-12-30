@@ -72,7 +72,7 @@ Bu proje, bir sosyal ağın düğüm ve kenar yapısını okuyarak aşağıdaki 
 │
 ├── Program.cs
 └── README.md
-
+```
 
 ---
 
