@@ -42,36 +42,31 @@ Bu proje, bir sosyal ağın düğüm ve kenar yapısını okuyarak aşağıdaki 
 ## Proje Klasör Yapısı
 
 ```text
-/SocialNetworkGraphAnalysis
+/SosyalAgGrafAnalizi
 │
-├── Data
-│   └── social_network.json
+├── Algoritmalar
+│   ├── AStarAlgoritmasi.cs
+│   ├── BfsAlgoritmasi.cs
+│   ├── DfsAlgoritmasi.cs
+│   ├── DijkstraAlgoritmasi.cs
+│   ├── MerkezlilikAlgoritmasi.cs
+│   └── WelshPowellRenklendirme.cs
 │
-├── Models
-│   ├── Node.cs
-│   ├── Edge.cs
-│   └── Graph.cs
+├── Arayuz
+│   └── GrafYapisi
+│       ├── Graf.cs
+│       └── IGraf.cs
 │
-├── Algorithms
-│   ├── BFS.cs
-│   ├── DFS.cs
-│   ├── AStar.cs
-│   ├── Centrality.cs
-│   └── WelshPowellColoring.cs
+├── Modeller
+│   ├── Dugum.cs
+│   └── Kenar.cs
 │
-├── Services
-│   └── GraphLoader.cs
+├── Verislemleri
+│   └── JsonKayitYukleyici.cs
 │
-├── UI
-│   ├── MainForm.cs
-│   ├── GraphRenderer.cs
-│   └── Controls
-│
-├── Utils
-│   └── MathHelper.cs
-│
-├── Program.cs
-└── README.md
+├── AnaForm.cs
+└── Program.cs
+
 ```
 
 ---
