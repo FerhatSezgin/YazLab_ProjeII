@@ -1,0 +1,1406 @@
+using System;
+using System.Collections.Generic;
+using SosyalAgGrafAnalizi.GrafYapisi;
+
+namespace SosyalAgGrafAnalizi.Algoritmalar
+{
+    public static class AStarAlgoritmasi
+    {
+        public class Sonuc
+        {
+            public List<int> Yol { get; set; } = new();
+            public double ToplamMaliyet { get; set; }
+        }
+
+        private static double KenarMaliyeti(IGraf graf, int i, int j)
+        {
+            var a = graf.DugumGetir(i) ?? throw new InvalidOperationException($"Düğüm yok: {i}");
+            var b = graf.DugumGetir(j) ?? throw new InvalidOperationException($"Düğüm yok: {j}");
+
+            double dAkt = a.Aktiflik - b.Aktiflik;
+            double dEtk = a.Etkilesim - b.Etkilesim;
+            double dBag = a.BaglantiSayisi() - b.BaglantiSayisi();
+
+            double dist2 = (dAkt * dAkt) + (dEtk * dEtk) + (dBag * dBag);
+
+            // maliyet = 1 + dist2
+            return 1.0 + dist2;
+        }
+
+        // Basit heuristic: özellik farklarının kareli toplamı (dist2)
+        // (A* daha hızlı karar verir; Dijkstra'ya göre yönlendirilmiş arama)
+        private static double Heuristic(IGraf graf, int n, int hedef)
+        {
+            var a = graf.DugumGetir(n)!;
+            var b = graf.DugumGetir(hedef)!;
+
+            double dAkt = a.Aktiflik - b.Aktiflik;
+            double dEtk = a.Etkilesim - b.Etkilesim;
+            double dBag = a.BaglantiSayisi() - b.BaglantiSayisi();
+
+            return (dAkt * dAkt) + (dEtk * dEtk) + (dBag * dBag);
+        }
+
+        public static Sonuc Calistir(IGraf graf, int baslangic, int hedef)
+        {
+            if (!graf.DugumVarMi(baslangic))
+                throw new InvalidOperationException("Başlangıç düğümü bulunamadı.");
+            if (!graf.DugumVarMi(hedef))
+                throw new InvalidOperationException("Hedef düğüm bulunamadı.");
+
+            var gScore = new Dictionary<int, double>();
+            var fScore = new Dictionary<int, double>();
+            var prev = new Dictionary<int, int?>();
+
+            foreach (var d in graf.TumDugumleriGetir())
+            {
+                gScore[d.Id] = double.PositiveInfinity;
+                fScore[d.Id] = double.PositiveInfinity;
+                prev[d.Id] = null;
+            }
+
+            gScore[baslangic] = 0;
+            fScore[baslangic] = Heuristic(graf, baslangic, hedef);
+
+            var pq = new PriorityQueue<int, double>();
+            pq.Enqueue(baslangic, fScore[baslangic]);
+
+            var kapali = new HashSet<int>();
+
+            while (pq.Count > 0)
+            {
+                int u = pq.Dequeue();
+
+                if (u == hedef) break;
+                if (!kapali.Add(u)) continue;
+
+                foreach (var v in graf.KomsulariGetir(u))
+                {
+                    double tentative = gScore[u] + KenarMaliyeti(graf, u, v);
+
+                    if (tentative < gScore[v])
+                    {
+                        prev[v] = u;
+                        gScore[v] = tentative;
+                        fScore[v] = tentative + Heuristic(graf, v, hedef);
+                        pq.Enqueue(v, fScore[v]);
+                    }
+                }
+            }
+
+            if (double.IsPositiveInfinity(gScore[hedef]))
+                return new Sonuc { Yol = new List<int>(), ToplamMaliyet = double.PositiveInfinity };
+
+            var yol = new List<int>();
+            int? cur = hedef;
+            while (cur != null)
+            {
+                yol.Add(cur.Value);
+                cur = prev[cur.Value];
+            }
+            yol.Reverse();
+
+            return new Sonuc { Yol = yol, ToplamMaliyet = gScore[hedef] };
+        }
+    }
+}
+
+
+using System;
+using System.Collections.Generic;
+using SosyalAgGrafAnalizi.GrafYapisi;
+
+namespace SosyalAgGrafAnalizi.Algoritmalar
+{
+    public static class BfsAlgoritmasi
+    {
+        public static List<int> Calistir(IGraf graf, int baslangicId)
+        {
+            if (!graf.DugumVarMi(baslangicId))
+                throw new InvalidOperationException("Başlangıç düğümü bulunamadı.");
+
+            var ziyaret = new HashSet<int>();
+            var kuyruk = new Queue<int>();
+            var sonuc = new List<int>();
+
+            ziyaret.Add(baslangicId);
+            kuyruk.Enqueue(baslangicId);
+
+            while (kuyruk.Count > 0)
+            {
+                int u = kuyruk.Dequeue();
+                sonuc.Add(u);
+
+                foreach (var v in graf.KomsulariGetir(u))
+                {
+                    if (ziyaret.Add(v))
+                        kuyruk.Enqueue(v);
+                }
+            }
+
+            return sonuc;
+        }
+    }
+}
+
+
+using System;
+using System.Collections.Generic;
+using SosyalAgGrafAnalizi.GrafYapisi;
+
+namespace SosyalAgGrafAnalizi.Algoritmalar
+{
+    public static class DfsAlgoritmasi
+    {
+        public static List<int> Calistir(IGraf graf, int baslangicId)
+        {
+            if (!graf.DugumVarMi(baslangicId))
+                throw new InvalidOperationException("Başlangıç düğümü bulunamadı.");
+
+            var ziyaret = new HashSet<int>();
+            var sonuc = new List<int>();
+
+            void Dfs(int u)
+            {
+                ziyaret.Add(u);
+                sonuc.Add(u);
+
+                foreach (var v in graf.KomsulariGetir(u))
+                {
+                    if (!ziyaret.Contains(v))
+                        Dfs(v);
+                }
+            }
+
+            Dfs(baslangicId);
+            return sonuc;
+        }
+    }
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using SosyalAgGrafAnalizi.GrafYapisi;
+
+namespace SosyalAgGrafAnalizi.Algoritmalar
+{
+    public static class DijkstraAlgoritmasi
+    {
+        public class Sonuc
+        {
+            public List<int> Yol { get; set; } = new();
+            public double ToplamMaliyet { get; set; }
+        }
+
+        // Verilen formül: agirlik = 1 / (1 + dist2)
+        // En kısa yol için maliyet = 1 / agirlik = (1 + dist2)
+        private static double KenarMaliyeti(IGraf graf, int i, int j)
+        {
+            var a = graf.DugumGetir(i) ?? throw new InvalidOperationException($"Düğüm yok: {i}");
+            var b = graf.DugumGetir(j) ?? throw new InvalidOperationException($"Düğüm yok: {j}");
+
+            double dAkt = a.Aktiflik - b.Aktiflik;
+            double dEtk = a.Etkilesim - b.Etkilesim;
+            double dBag = a.BaglantiSayisi() - b.BaglantiSayisi();
+
+            double dist2 = (dAkt * dAkt) + (dEtk * dEtk) + (dBag * dBag);
+
+            double agirlik = 1.0 / (1.0 + dist2);
+            double maliyet = 1.0 / agirlik; // = 1 + dist2
+
+            return maliyet;
+        }
+
+        public static Sonuc Calistir(IGraf graf, int baslangic, int hedef)
+        {
+            if (!graf.DugumVarMi(baslangic))
+                throw new InvalidOperationException("Başlangıç düğümü bulunamadı.");
+            if (!graf.DugumVarMi(hedef))
+                throw new InvalidOperationException("Hedef düğüm bulunamadı.");
+
+            var dist = new Dictionary<int, double>();
+            var prev = new Dictionary<int, int?>();
+
+            foreach (var d in graf.TumDugumleriGetir())
+            {
+                dist[d.Id] = double.PositiveInfinity;
+                prev[d.Id] = null;
+            }
+
+            dist[baslangic] = 0;
+
+            var pq = new PriorityQueue<int, double>();
+            pq.Enqueue(baslangic, 0);
+
+            while (pq.Count > 0)
+            {
+                int u = pq.Dequeue();
+
+                if (u == hedef) break;
+
+                foreach (var v in graf.KomsulariGetir(u))
+                {
+                    double alt = dist[u] + KenarMaliyeti(graf, u, v);
+                    if (alt < dist[v])
+                    {
+                        dist[v] = alt;
+                        prev[v] = u;
+                        pq.Enqueue(v, alt);
+                    }
+                }
+            }
+
+            if (double.IsPositiveInfinity(dist[hedef]))
+                return new Sonuc { Yol = new List<int>(), ToplamMaliyet = double.PositiveInfinity };
+
+            // Yol çıkarma
+            var yol = new List<int>();
+            int? cur = hedef;
+            while (cur != null)
+            {
+                yol.Add(cur.Value);
+                cur = prev[cur.Value];
+            }
+            yol.Reverse();
+
+            return new Sonuc { Yol = yol, ToplamMaliyet = dist[hedef] };
+        }
+    }
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using SosyalAgGrafAnalizi.GrafYapisi;
+
+namespace SosyalAgGrafAnalizi.Algoritmalar
+{
+    public static class MerkezilikAlgoritmasi
+    {
+        public class Kayit
+        {
+            public int DugumId { get; set; }
+            public int Derece { get; set; }
+        }
+
+        public static List<Kayit> DereceleriHesapla(IGraf graf)
+        {
+            return graf.TumDugumleriGetir()
+                .Select(d => new Kayit
+                {
+                    DugumId = d.Id,
+                    Derece = graf.KomsulariGetir(d.Id).Distinct().Count()
+                })
+                .OrderByDescending(x => x.Derece)
+                .ThenBy(x => x.DugumId)
+                .ToList();
+        }
+
+        public static List<Kayit> EnEtkiliIlk5(IGraf graf)
+        {
+            return DereceleriHesapla(graf).Take(5).ToList();
+        }
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using SosyalAgGrafAnalizi.GrafYapisi;
+
+namespace SosyalAgGrafAnalizi.Algoritmalar
+{
+    public static class WelshPowellRenklendirme
+    {
+        public class BilesenSonuc
+        {
+            public int BilesenNo { get; set; }
+            public Dictionary<int, int> DugumRenkleri { get; set; } = new(); // nodeId -> colorIndex
+            public int KullanilanRenkSayisi { get; set; }
+        }
+
+        public static List<BilesenSonuc> Calistir(IGraf graf)
+        {
+            var bilesenler = BagliBilesenleriBul(graf);
+            var sonuc = new List<BilesenSonuc>();
+
+            int no = 1;
+            foreach (var bilesen in bilesenler)
+            {
+                var renklendirme = WelshPowellTekBilesen(graf, bilesen);
+                sonuc.Add(new BilesenSonuc
+                {
+                    BilesenNo = no++,
+                    DugumRenkleri = renklendirme,
+                    KullanilanRenkSayisi = renklendirme.Values.DefaultIfEmpty(-1).Max() + 1
+                });
+            }
+
+            return sonuc;
+        }
+
+        private static List<List<int>> BagliBilesenleriBul(IGraf graf)
+        {
+            var ziyaret = new HashSet<int>();
+            var bilesenler = new List<List<int>>();
+
+            foreach (var d in graf.TumDugumleriGetir())
+            {
+                if (ziyaret.Contains(d.Id)) continue;
+
+                var bilesen = new List<int>();
+                var q = new Queue<int>();
+                q.Enqueue(d.Id);
+                ziyaret.Add(d.Id);
+
+                while (q.Count > 0)
+                {
+                    var u = q.Dequeue();
+                    bilesen.Add(u);
+
+                    foreach (var v in graf.KomsulariGetir(u))
+                    {
+                        if (ziyaret.Add(v))
+                            q.Enqueue(v);
+                    }
+                }
+
+                bilesenler.Add(bilesen);
+            }
+
+            return bilesenler;
+        }
+
+        private static Dictionary<int, int> WelshPowellTekBilesen(IGraf graf, List<int> dugumler)
+        {
+            // 1) Dereceye göre büyükten küçüğe sırala
+            var sirali = dugumler
+                .OrderByDescending(id => graf.KomsulariGetir(id).Distinct().Count())
+                .ThenBy(id => id)
+                .ToList();
+
+            var renk = new Dictionary<int, int>(); // nodeId -> colorIndex
+
+            int mevcutRenk = 0;
+
+            foreach (var u in sirali)
+            {
+                if (renk.ContainsKey(u)) continue;
+
+                renk[u] = mevcutRenk;
+
+                // aynı rengi verebileceğimiz diğer düğümleri sırayla dene
+                foreach (var v in sirali)
+                {
+                    if (renk.ContainsKey(v)) continue;
+
+                    bool komsuAyniRenkMi = renk
+                        .Where(kv => kv.Value == mevcutRenk)
+                        .Select(kv => kv.Key)
+                        .Any(renkli => graf.KomsulariGetir(renkli).Contains(v));
+
+                    if (!komsuAyniRenkMi)
+                        renk[v] = mevcutRenk;
+                }
+
+                mevcutRenk++;
+            }
+
+            return renk;
+        }
+    }
+}
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using SosyalAgGrafAnalizi.Modeller;
+
+namespace SosyalAgGrafAnalizi.GrafYapisi
+{
+    public class Graf : IGraf
+    {
+        // Düğümler: Id -> Dugum
+        private readonly Dictionary<int, Dugum> _dugumler = new();
+
+        // Komşuluk listesi: Id -> komşu Id'leri
+        private readonly Dictionary<int, HashSet<int>> _komsuluk = new();
+
+        public void DugumEkle(Dugum dugum)
+        {
+            if (dugum == null) throw new ArgumentNullException(nameof(dugum));
+            if (_dugumler.ContainsKey(dugum.Id))
+                throw new InvalidOperationException($"Bu ID zaten var: {dugum.Id}");
+
+            _dugumler[dugum.Id] = dugum;
+            _komsuluk[dugum.Id] = new HashSet<int>();
+        }
+
+        public void DugumSil(int dugumId)
+        {
+            if (!_dugumler.ContainsKey(dugumId))
+                throw new InvalidOperationException($"Düğüm bulunamadı: {dugumId}");
+
+            // Bu düğüme bağlı tüm kenarları kaldır
+            var komsular = _komsuluk[dugumId].ToList();
+            foreach (var k in komsular)
+            {
+                KenarSil(dugumId, k);
+            }
+
+            _komsuluk.Remove(dugumId);
+            _dugumler.Remove(dugumId);
+        }
+
+        public void DugumGuncelle(Dugum dugum)
+        {
+            if (dugum == null) throw new ArgumentNullException(nameof(dugum));
+            if (!_dugumler.ContainsKey(dugum.Id))
+                throw new InvalidOperationException($"Güncellenecek düğüm bulunamadı: {dugum.Id}");
+
+            // Komşuları koru
+            var eskiKomsular = _dugumler[dugum.Id].Komsular;
+
+            _dugumler[dugum.Id] = dugum;
+            _dugumler[dugum.Id].Komsular = eskiKomsular;
+        }
+
+        public void KenarEkle(int baslangicId, int bitisId)
+        {
+            if (baslangicId == bitisId)
+                throw new InvalidOperationException("Self-loop yasaktır (düğüm kendisine bağlanamaz).");
+
+            if (!DugumVarMi(baslangicId) || !DugumVarMi(bitisId))
+                throw new InvalidOperationException("Kenar eklemek için iki düğüm de var olmalı.");
+
+            if (KenarVarMi(baslangicId, bitisId))
+                throw new InvalidOperationException("Bu kenar zaten var.");
+
+            // yönsüz: iki tarafa da ekle
+            _komsuluk[baslangicId].Add(bitisId);
+            _komsuluk[bitisId].Add(baslangicId);
+
+            // Dugum içindeki komşu listelerini de güncel tut
+            _dugumler[baslangicId].Komsular.Add(bitisId);
+            _dugumler[bitisId].Komsular.Add(baslangicId);
+        }
+
+        public void KenarSil(int baslangicId, int bitisId)
+        {
+            if (!KenarVarMi(baslangicId, bitisId))
+                throw new InvalidOperationException("Silinecek kenar bulunamadı.");
+
+            _komsuluk[baslangicId].Remove(bitisId);
+            _komsuluk[bitisId].Remove(baslangicId);
+
+            _dugumler[baslangicId].Komsular.Remove(bitisId);
+            _dugumler[bitisId].Komsular.Remove(baslangicId);
+        }
+
+        public bool DugumVarMi(int dugumId) => _dugumler.ContainsKey(dugumId);
+
+        public bool KenarVarMi(int baslangicId, int bitisId)
+        {
+            return _komsuluk.ContainsKey(baslangicId) && _komsuluk[baslangicId].Contains(bitisId);
+        }
+
+        public Dugum? DugumGetir(int dugumId)
+        {
+            _dugumler.TryGetValue(dugumId, out var dugum);
+            return dugum;
+        }
+
+        public List<Dugum> TumDugumleriGetir()
+        {
+            return _dugumler.Values.OrderBy(d => d.Id).ToList();
+        }
+
+        public List<int> KomsulariGetir(int dugumId)
+        {
+            if (!_komsuluk.ContainsKey(dugumId))
+                throw new InvalidOperationException($"Düğüm bulunamadı: {dugumId}");
+
+            return _komsuluk[dugumId].OrderBy(x => x).ToList();
+        }
+
+        public Dictionary<int, List<int>> KomsulukListesiOlustur()
+        {
+            // rapor/çıktı için: HashSet -> List
+            var sonuc = new Dictionary<int, List<int>>();
+
+            foreach (var id in _dugumler.Keys.OrderBy(x => x))
+            {
+                sonuc[id] = _komsuluk[id].OrderBy(x => x).ToList();
+            }
+
+            return sonuc;
+        }
+    }
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using SosyalAgGrafAnalizi.Modeller;
+
+namespace SosyalAgGrafAnalizi.GrafYapisi
+{
+    public interface IGraf
+    {
+        // Düğüm işlemleri
+        void DugumEkle(Dugum dugum);
+        void DugumSil(int dugumId);
+        void DugumGuncelle(Dugum dugum);
+
+        // Kenar işlemleri (yönsüz)
+        void KenarEkle(int baslangicId, int bitisId);
+        void KenarSil(int baslangicId, int bitisId);
+
+        // Sorgular
+        bool DugumVarMi(int dugumId);
+        bool KenarVarMi(int baslangicId, int bitisId);
+
+        Dugum? DugumGetir(int dugumId);
+        List<Dugum> TumDugumleriGetir();
+        List<int> KomsulariGetir(int dugumId);
+
+        // Komşuluk listesi çıktısı (rapor/çıktı için)
+        Dictionary<int, List<int>> KomsulukListesiOlustur();
+    }
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace SosyalAgGrafAnalizi.Modeller
+{
+    public class Dugum
+    {
+        // Temel bilgiler
+        public int Id { get; set; }
+        public string Ad { get; set; }
+
+        // Dinamik ağırlık hesabında kullanılacak özellikler
+        public double Aktiflik { get; set; }      // 0–1 arası değer
+        public double Etkilesim { get; set; }     // etkileşim sayısı
+
+        // Graf çizimi için (canvas üzerindeki konum)
+        public PointF Konum { get; set; }
+
+        // Komşu düğümler (ID listesi)
+        public List<int> Komsular { get; set; }
+
+        // Kurucu (constructor)
+        public Dugum(int id, string ad, double aktiflik, double etkilesim, PointF konum)
+        {
+            Id = id;
+            Ad = ad;
+            Aktiflik = aktiflik;
+            Etkilesim = etkilesim;
+            Konum = konum;
+            Komsular = new List<int>();
+        }
+
+        // Bağlantı sayısı (degree)
+        public int BaglantiSayisi()
+        {
+            return Komsular.Count;
+        }
+
+        public override string ToString()
+        {
+            return $"{Id} - {Ad}";
+        }
+    }
+}
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace SosyalAgGrafAnalizi.Modeller
+{
+    public class Kenar
+    {
+        // Kenarın bağladığı düğümler
+        public int BaslangicId { get; set; }
+        public int BitisId { get; set; }
+
+        // Kenar yönsüz olduğu için (i,j) ve (j,i) aynı kabul edilir
+        // Ağırlık dinamik olarak hesaplanacağı için burada saklanmaz
+
+        public Kenar(int baslangicId, int bitisId)
+        {
+            if (baslangicId == bitisId)
+                throw new ArgumentException("Self-loop (bir düğümün kendisine bağlanması) yasaktır.");
+
+            BaslangicId = baslangicId;
+            BitisId = bitisId;
+        }
+
+        // Yönsüz kenar karşılaştırması
+        public bool EsitMi(Kenar diger)
+        {
+            return
+                (BaslangicId == diger.BaslangicId && BitisId == diger.BitisId) ||
+                (BaslangicId == diger.BitisId && BitisId == diger.BaslangicId);
+        }
+    }
+}
+
+
+using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using SosyalAgGrafAnalizi.GrafYapisi;
+using SosyalAgGrafAnalizi.Modeller;
+
+namespace SosyalAgGrafAnalizi.VeriIslemleri
+{
+    public static class JsonKayitYukleyici
+    {
+        // JSON'a kaydedeceğimiz sade model
+        private class GrafDto
+        {
+            public List<DugumDto> Dugumler { get; set; } = new();
+            public List<KenarDto> Kenarlar { get; set; } = new();
+        }
+
+        private class DugumDto
+        {
+            public int Id { get; set; }
+            public string Ad { get; set; } = "";
+            public double Aktiflik { get; set; }
+            public double Etkilesim { get; set; }
+
+            // Konum kaydı (çizim için)
+            public float X { get; set; }
+            public float Y { get; set; }
+        }
+
+        private class KenarDto
+        {
+            public int A { get; set; }
+            public int B { get; set; }
+        }
+
+        private static JsonSerializerOptions Options => new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNameCaseInsensitive = true,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString
+        };
+
+        public static void Kaydet(IGraf graf, string dosyaYolu)
+        {
+            var dto = new GrafDto();
+
+            // Düğümler
+            foreach (var d in graf.TumDugumleriGetir())
+            {
+                dto.Dugumler.Add(new DugumDto
+                {
+                    Id = d.Id,
+                    Ad = d.Ad,
+                    Aktiflik = d.Aktiflik,
+                    Etkilesim = d.Etkilesim,
+                    X = d.Konum.X,
+                    Y = d.Konum.Y
+                });
+            }
+
+            // Kenarlar (yönsüz olduğu için tekrarları engelle)
+            var eklendi = new HashSet<string>();
+            foreach (var d in graf.TumDugumleriGetir())
+            {
+                foreach (var k in graf.KomsulariGetir(d.Id))
+                {
+                    int a = d.Id;
+                    int b = k;
+                    int min = a < b ? a : b;
+                    int max = a < b ? b : a;
+
+                    string key = $"{min}-{max}";
+                    if (eklendi.Add(key))
+                    {
+                        dto.Kenarlar.Add(new KenarDto { A = min, B = max });
+                    }
+                }
+            }
+
+            var json = JsonSerializer.Serialize(dto, Options);
+            File.WriteAllText(dosyaYolu, json);
+        }
+
+        public static IGraf Yukle(string dosyaYolu)
+        {
+            var json = File.ReadAllText(dosyaYolu);
+            var dto = JsonSerializer.Deserialize<GrafDto>(json, Options) ?? new GrafDto();
+
+            IGraf graf = new Graf();
+
+            // Düğümler
+            foreach (var d in dto.Dugumler)
+            {
+                var dugum = new Dugum(
+                    d.Id,
+                    d.Ad,
+                    d.Aktiflik,
+                    d.Etkilesim,
+                    new System.Drawing.PointF(d.X, d.Y)
+                );
+
+                graf.DugumEkle(dugum);
+            }
+
+            // Kenarlar
+            foreach (var e in dto.Kenarlar)
+            {
+                // Düğümler yoksa hata vermesin diye kontrol
+                if (graf.DugumVarMi(e.A) && graf.DugumVarMi(e.B))
+                    graf.KenarEkle(e.A, e.B);
+            }
+
+            return graf;
+        }
+    }
+}
+
+
+namespace SosyalAgGrafAnalizi
+{
+    partial class AnaForm
+    {
+        /// <summary>
+        ///  Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        ///  Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer generated code
+
+        /// <summary>
+        ///  Required method for Designer support - do not modify
+        ///  the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            pnlLeft = new Panel();
+            lblHeaderDugum = new Label();
+            lblHeaderBaglanti = new Label();
+            btnDugumSil = new Button();
+            btnDugumGuncelle = new Button();
+            btnDugumEkle = new Button();
+            txtEtkilesim = new TextBox();
+            lblEtkilesim = new Label();
+            txtAktiflik = new TextBox();
+            lblAktiflik = new Label();
+            txtDugumAd = new TextBox();
+            lblNodeAd = new Label();
+            txtDugumId = new TextBox();
+            lblNodeId = new Label();
+            btnKenarSil = new Button();
+            btnKenarEkle = new Button();
+            txtBitisId = new TextBox();
+            lblTo = new Label();
+            txtBaslangicId = new TextBox();
+            lblFrom = new Label();
+            pnlBottom = new Panel();
+            lblHeaderVeri = new Label();
+            btnCiktiTemizle = new Button();
+            btnRenklendir = new Button();
+            btnMerkezilik = new Button();
+            btnAStar = new Button();
+            btnDijkstra = new Button();
+            btnDfs = new Button();
+            btnBfs = new Button();
+            grpDugumBilgi = new GroupBox();
+            lblSeciliDugumBilgi = new Label();
+            btnJsonYukle = new Button();
+            btnJsonKaydet = new Button();
+            rtbCikti = new RichTextBox();
+            btnKomsulukListele = new Button();
+            pnlCanvas = new Panel();
+            pnlLeft.SuspendLayout();
+            pnlBottom.SuspendLayout();
+            grpDugumBilgi.SuspendLayout();
+            SuspendLayout();
+            // 
+            // pnlLeft
+            // 
+            pnlLeft.BackColor = Color.FromArgb(30, 41, 59);
+            pnlLeft.Controls.Add(lblHeaderDugum);
+            pnlLeft.Controls.Add(lblHeaderBaglanti);
+            pnlLeft.Controls.Add(btnDugumSil);
+            pnlLeft.Controls.Add(btnDugumGuncelle);
+            pnlLeft.Controls.Add(btnDugumEkle);
+            pnlLeft.Controls.Add(txtEtkilesim);
+            pnlLeft.Controls.Add(lblEtkilesim);
+            pnlLeft.Controls.Add(txtAktiflik);
+            pnlLeft.Controls.Add(lblAktiflik);
+            pnlLeft.Controls.Add(txtDugumAd);
+            pnlLeft.Controls.Add(lblNodeAd);
+            pnlLeft.Controls.Add(txtDugumId);
+            pnlLeft.Controls.Add(lblNodeId);
+            pnlLeft.Controls.Add(btnKenarSil);
+            pnlLeft.Controls.Add(btnKenarEkle);
+            pnlLeft.Controls.Add(txtBitisId);
+            pnlLeft.Controls.Add(lblTo);
+            pnlLeft.Controls.Add(txtBaslangicId);
+            pnlLeft.Controls.Add(lblFrom);
+            pnlLeft.Dock = DockStyle.Left;
+            pnlLeft.Location = new Point(0, 0);
+            pnlLeft.Name = "pnlLeft";
+            pnlLeft.Size = new Size(260, 775);
+            pnlLeft.TabIndex = 0;
+            // 
+            // lblHeaderDugum
+            // 
+            lblHeaderDugum.AutoSize = true;
+            lblHeaderDugum.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            lblHeaderDugum.ForeColor = Color.LightSkyBlue;
+            lblHeaderDugum.Location = new Point(12, 190);
+            lblHeaderDugum.Name = "lblHeaderDugum";
+            lblHeaderDugum.Size = new Size(161, 23);
+            lblHeaderDugum.TabIndex = 17;
+            lblHeaderDugum.Text = "DÜĞÜM YÖNETİMİ";
+            // 
+            // lblHeaderBaglanti
+            // 
+            lblHeaderBaglanti.AutoSize = true;
+            lblHeaderBaglanti.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            lblHeaderBaglanti.ForeColor = Color.LightSkyBlue;
+            lblHeaderBaglanti.Location = new Point(12, 15);
+            lblHeaderBaglanti.Name = "lblHeaderBaglanti";
+            lblHeaderBaglanti.Size = new Size(180, 23);
+            lblHeaderBaglanti.TabIndex = 16;
+            lblHeaderBaglanti.Text = "BAĞLANTI YÖNETİMİ";
+            // 
+            // btnDugumSil
+            // 
+            btnDugumSil.BackColor = Color.FromArgb(185, 28, 28);
+            btnDugumSil.FlatAppearance.BorderSize = 0;
+            btnDugumSil.FlatStyle = FlatStyle.Flat;
+            btnDugumSil.ForeColor = Color.White;
+            btnDugumSil.Location = new Point(12, 450);
+            btnDugumSil.Name = "btnDugumSil";
+            btnDugumSil.Size = new Size(235, 30);
+            btnDugumSil.TabIndex = 10;
+            btnDugumSil.Text = "Düğüm Sil";
+            btnDugumSil.UseVisualStyleBackColor = false;
+            btnDugumSil.Click += btnDugumSil_Click;
+            // 
+            // btnDugumGuncelle
+            // 
+            btnDugumGuncelle.BackColor = Color.FromArgb(51, 65, 85);
+            btnDugumGuncelle.FlatAppearance.BorderSize = 0;
+            btnDugumGuncelle.FlatStyle = FlatStyle.Flat;
+            btnDugumGuncelle.ForeColor = Color.White;
+            btnDugumGuncelle.Location = new Point(12, 414);
+            btnDugumGuncelle.Name = "btnDugumGuncelle";
+            btnDugumGuncelle.Size = new Size(235, 30);
+            btnDugumGuncelle.TabIndex = 9;
+            btnDugumGuncelle.Text = "Düğüm Güncelle";
+            btnDugumGuncelle.UseVisualStyleBackColor = false;
+            btnDugumGuncelle.Click += btnDugumGuncelle_Click;
+            // 
+            // btnDugumEkle
+            // 
+            btnDugumEkle.BackColor = Color.FromArgb(37, 99, 235);
+            btnDugumEkle.FlatAppearance.BorderSize = 0;
+            btnDugumEkle.FlatStyle = FlatStyle.Flat;
+            btnDugumEkle.ForeColor = Color.White;
+            btnDugumEkle.Location = new Point(12, 378);
+            btnDugumEkle.Name = "btnDugumEkle";
+            btnDugumEkle.Size = new Size(235, 30);
+            btnDugumEkle.TabIndex = 8;
+            btnDugumEkle.Text = "Düğüm Ekle";
+            btnDugumEkle.UseVisualStyleBackColor = false;
+            btnDugumEkle.Click += btnDugumEkle_Click;
+            // 
+            // txtEtkilesim
+            // 
+            txtEtkilesim.BackColor = Color.FromArgb(51, 65, 85);
+            txtEtkilesim.BorderStyle = BorderStyle.FixedSingle;
+            txtEtkilesim.ForeColor = Color.White;
+            txtEtkilesim.Location = new Point(111, 336);
+            txtEtkilesim.Name = "txtEtkilesim";
+            txtEtkilesim.Size = new Size(136, 27);
+            txtEtkilesim.TabIndex = 7;
+            // 
+            // lblEtkilesim
+            // 
+            lblEtkilesim.AutoSize = true;
+            lblEtkilesim.ForeColor = Color.White;
+            lblEtkilesim.Location = new Point(12, 338);
+            lblEtkilesim.Name = "lblEtkilesim";
+            lblEtkilesim.Size = new Size(68, 20);
+            lblEtkilesim.TabIndex = 6;
+            lblEtkilesim.Text = "Etkileşim";
+            // 
+            // txtAktiflik
+            // 
+            txtAktiflik.BackColor = Color.FromArgb(51, 65, 85);
+            txtAktiflik.BorderStyle = BorderStyle.FixedSingle;
+            txtAktiflik.ForeColor = Color.White;
+            txtAktiflik.Location = new Point(111, 302);
+            txtAktiflik.Name = "txtAktiflik";
+            txtAktiflik.Size = new Size(136, 27);
+            txtAktiflik.TabIndex = 5;
+            // 
+            // lblAktiflik
+            // 
+            lblAktiflik.AutoSize = true;
+            lblAktiflik.ForeColor = Color.White;
+            lblAktiflik.Location = new Point(12, 304);
+            lblAktiflik.Name = "lblAktiflik";
+            lblAktiflik.Size = new Size(91, 20);
+            lblAktiflik.TabIndex = 4;
+            lblAktiflik.Text = "Aktiflik (0-1)";
+            // 
+            // txtDugumAd
+            // 
+            txtDugumAd.BackColor = Color.FromArgb(51, 65, 85);
+            txtDugumAd.BorderStyle = BorderStyle.FixedSingle;
+            txtDugumAd.ForeColor = Color.White;
+            txtDugumAd.Location = new Point(111, 267);
+            txtDugumAd.Name = "txtDugumAd";
+            txtDugumAd.Size = new Size(136, 27);
+            txtDugumAd.TabIndex = 3;
+            // 
+            // lblNodeAd
+            // 
+            lblNodeAd.AutoSize = true;
+            lblNodeAd.ForeColor = Color.White;
+            lblNodeAd.Location = new Point(12, 269);
+            lblNodeAd.Name = "lblNodeAd";
+            lblNodeAd.Size = new Size(28, 20);
+            lblNodeAd.TabIndex = 2;
+            lblNodeAd.Text = "Ad";
+            lblNodeAd.Click += lblNodeAd_Click;
+            // 
+            // txtDugumId
+            // 
+            txtDugumId.BackColor = Color.FromArgb(51, 65, 85);
+            txtDugumId.BorderStyle = BorderStyle.FixedSingle;
+            txtDugumId.ForeColor = Color.White;
+            txtDugumId.Location = new Point(111, 233);
+            txtDugumId.Name = "txtDugumId";
+            txtDugumId.Size = new Size(136, 27);
+            txtDugumId.TabIndex = 1;
+            // 
+            // lblNodeId
+            // 
+            lblNodeId.AutoSize = true;
+            lblNodeId.ForeColor = Color.White;
+            lblNodeId.Location = new Point(12, 235);
+            lblNodeId.Name = "lblNodeId";
+            lblNodeId.Size = new Size(77, 20);
+            lblNodeId.TabIndex = 0;
+            lblNodeId.Text = "Düğüm ID";
+            lblNodeId.Click += label1_Click;
+            // 
+            // btnKenarSil
+            // 
+            btnKenarSil.BackColor = Color.FromArgb(185, 28, 28);
+            btnKenarSil.FlatAppearance.BorderSize = 0;
+            btnKenarSil.FlatStyle = FlatStyle.Flat;
+            btnKenarSil.ForeColor = Color.White;
+            btnKenarSil.Location = new Point(135, 115);
+            btnKenarSil.Name = "btnKenarSil";
+            btnKenarSil.Size = new Size(112, 29);
+            btnKenarSil.TabIndex = 16;
+            btnKenarSil.Text = "Kenar Sil";
+            btnKenarSil.UseVisualStyleBackColor = false;
+            btnKenarSil.Click += btnKenarSil_Click;
+            // 
+            // btnKenarEkle
+            // 
+            btnKenarEkle.BackColor = Color.FromArgb(37, 99, 235);
+            btnKenarEkle.FlatAppearance.BorderSize = 0;
+            btnKenarEkle.FlatStyle = FlatStyle.Flat;
+            btnKenarEkle.ForeColor = Color.White;
+            btnKenarEkle.Location = new Point(12, 115);
+            btnKenarEkle.Name = "btnKenarEkle";
+            btnKenarEkle.Size = new Size(112, 29);
+            btnKenarEkle.TabIndex = 15;
+            btnKenarEkle.Text = "Kenar Ekle";
+            btnKenarEkle.UseVisualStyleBackColor = false;
+            btnKenarEkle.Click += btnKenarEkle_Click;
+            // 
+            // txtBitisId
+            // 
+            txtBitisId.BackColor = Color.FromArgb(51, 65, 85);
+            txtBitisId.BorderStyle = BorderStyle.FixedSingle;
+            txtBitisId.ForeColor = Color.White;
+            txtBitisId.Location = new Point(111, 75);
+            txtBitisId.Name = "txtBitisId";
+            txtBitisId.Size = new Size(136, 27);
+            txtBitisId.TabIndex = 14;
+            // 
+            // lblTo
+            // 
+            lblTo.AutoSize = true;
+            lblTo.ForeColor = Color.White;
+            lblTo.Location = new Point(12, 77);
+            lblTo.Name = "lblTo";
+            lblTo.Size = new Size(56, 20);
+            lblTo.TabIndex = 13;
+            lblTo.Text = "Bitiş ID";
+            lblTo.Click += lblTo_Click;
+            // 
+            // txtBaslangicId
+            // 
+            txtBaslangicId.BackColor = Color.FromArgb(51, 65, 85);
+            txtBaslangicId.BorderStyle = BorderStyle.FixedSingle;
+            txtBaslangicId.ForeColor = Color.White;
+            txtBaslangicId.Location = new Point(111, 41);
+            txtBaslangicId.Name = "txtBaslangicId";
+            txtBaslangicId.Size = new Size(136, 27);
+            txtBaslangicId.TabIndex = 12;
+            // 
+            // lblFrom
+            // 
+            lblFrom.AutoSize = true;
+            lblFrom.ForeColor = Color.White;
+            lblFrom.Location = new Point(12, 44);
+            lblFrom.Name = "lblFrom";
+            lblFrom.Size = new Size(91, 20);
+            lblFrom.TabIndex = 11;
+            lblFrom.Text = "Başlangıç ID";
+            lblFrom.Click += lblFrom_Click;
+            // 
+            // pnlBottom
+            // 
+            pnlBottom.BackColor = Color.FromArgb(30, 41, 59);
+            pnlBottom.Controls.Add(lblHeaderVeri);
+            pnlBottom.Controls.Add(btnCiktiTemizle);
+            pnlBottom.Controls.Add(btnRenklendir);
+            pnlBottom.Controls.Add(btnMerkezilik);
+            pnlBottom.Controls.Add(btnAStar);
+            pnlBottom.Controls.Add(btnDijkstra);
+            pnlBottom.Controls.Add(btnDfs);
+            pnlBottom.Controls.Add(btnBfs);
+            pnlBottom.Controls.Add(grpDugumBilgi);
+            pnlBottom.Controls.Add(btnJsonYukle);
+            pnlBottom.Controls.Add(btnJsonKaydet);
+            pnlBottom.Controls.Add(rtbCikti);
+            pnlBottom.Controls.Add(btnKomsulukListele);
+            pnlBottom.Dock = DockStyle.Bottom;
+            pnlBottom.Location = new Point(260, 529);
+            pnlBottom.Name = "pnlBottom";
+            pnlBottom.Size = new Size(926, 246);
+            pnlBottom.TabIndex = 1;
+            // 
+            // lblHeaderVeri
+            // 
+            lblHeaderVeri.AutoSize = true;
+            lblHeaderVeri.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            lblHeaderVeri.ForeColor = Color.LightSkyBlue;
+            lblHeaderVeri.Location = new Point(10, 10);
+            lblHeaderVeri.Name = "lblHeaderVeri";
+            lblHeaderVeri.Size = new Size(134, 23);
+            lblHeaderVeri.TabIndex = 18;
+            lblHeaderVeri.Text = "VERİ İŞLEMLERİ";
+            // 
+            // btnCiktiTemizle
+            // 
+            btnCiktiTemizle.BackColor = Color.FromArgb(51, 65, 85);
+            btnCiktiTemizle.FlatAppearance.BorderSize = 0;
+            btnCiktiTemizle.FlatStyle = FlatStyle.Flat;
+            btnCiktiTemizle.ForeColor = Color.LightGray;
+            btnCiktiTemizle.Location = new Point(589, 203);
+            btnCiktiTemizle.Name = "btnCiktiTemizle";
+            btnCiktiTemizle.Size = new Size(75, 31);
+            btnCiktiTemizle.TabIndex = 29;
+            btnCiktiTemizle.Text = "Temizle";
+            btnCiktiTemizle.UseVisualStyleBackColor = false;
+            btnCiktiTemizle.Click += btnCiktiTemizle_Click;
+            // 
+            // btnRenklendir
+            // 
+            btnRenklendir.BackColor = Color.FromArgb(51, 65, 85);
+            btnRenklendir.FlatAppearance.BorderSize = 0;
+            btnRenklendir.FlatStyle = FlatStyle.Flat;
+            btnRenklendir.ForeColor = Color.White;
+            btnRenklendir.Location = new Point(10, 201);
+            btnRenklendir.Margin = new Padding(3, 4, 3, 4);
+            btnRenklendir.Name = "btnRenklendir";
+            btnRenklendir.Size = new Size(161, 31);
+            btnRenklendir.TabIndex = 28;
+            btnRenklendir.Text = "Graf Renklendir";
+            btnRenklendir.UseVisualStyleBackColor = false;
+            btnRenklendir.Click += btnRenklendir_Click;
+            // 
+            // btnMerkezilik
+            // 
+            btnMerkezilik.BackColor = Color.FromArgb(51, 65, 85);
+            btnMerkezilik.FlatAppearance.BorderSize = 0;
+            btnMerkezilik.FlatStyle = FlatStyle.Flat;
+            btnMerkezilik.ForeColor = Color.White;
+            btnMerkezilik.Location = new Point(10, 162);
+            btnMerkezilik.Margin = new Padding(3, 4, 3, 4);
+            btnMerkezilik.Name = "btnMerkezilik";
+            btnMerkezilik.Size = new Size(161, 31);
+            btnMerkezilik.TabIndex = 27;
+            btnMerkezilik.Text = "En Etkili 5 (Merkezilik)";
+            btnMerkezilik.UseVisualStyleBackColor = false;
+            btnMerkezilik.Click += btnMerkezilik_Click;
+            // 
+            // btnAStar
+            // 
+            btnAStar.BackColor = Color.FromArgb(51, 65, 85);
+            btnAStar.FlatAppearance.BorderSize = 0;
+            btnAStar.FlatStyle = FlatStyle.Flat;
+            btnAStar.ForeColor = Color.White;
+            btnAStar.Location = new Point(10, 123);
+            btnAStar.Margin = new Padding(3, 4, 3, 4);
+            btnAStar.Name = "btnAStar";
+            btnAStar.Size = new Size(161, 31);
+            btnAStar.TabIndex = 26;
+            btnAStar.Text = "A* Yol Bul";
+            btnAStar.UseVisualStyleBackColor = false;
+            btnAStar.Click += btnAStar_Click;
+            // 
+            // btnDijkstra
+            // 
+            btnDijkstra.BackColor = Color.FromArgb(51, 65, 85);
+            btnDijkstra.FlatAppearance.BorderSize = 0;
+            btnDijkstra.FlatStyle = FlatStyle.Flat;
+            btnDijkstra.ForeColor = Color.White;
+            btnDijkstra.Location = new Point(10, 84);
+            btnDijkstra.Margin = new Padding(3, 4, 3, 4);
+            btnDijkstra.Name = "btnDijkstra";
+            btnDijkstra.Size = new Size(161, 31);
+            btnDijkstra.TabIndex = 25;
+            btnDijkstra.Text = "Dijkstra Yol Bul";
+            btnDijkstra.UseVisualStyleBackColor = false;
+            btnDijkstra.Click += btnDijkstra_Click;
+            // 
+            // btnDfs
+            // 
+            btnDfs.BackColor = Color.FromArgb(51, 65, 85);
+            btnDfs.FlatAppearance.BorderSize = 0;
+            btnDfs.FlatStyle = FlatStyle.Flat;
+            btnDfs.ForeColor = Color.White;
+            btnDfs.Location = new Point(10, 45);
+            btnDfs.Margin = new Padding(3, 4, 3, 4);
+            btnDfs.Name = "btnDfs";
+            btnDfs.Size = new Size(85, 31);
+            btnDfs.TabIndex = 24;
+            btnDfs.Text = "DFS Çalıştır";
+            btnDfs.UseVisualStyleBackColor = false;
+            btnDfs.Click += btnDfs_Click;
+            // 
+            // btnBfs
+            // 
+            btnBfs.BackColor = Color.FromArgb(51, 65, 85);
+            btnBfs.FlatAppearance.BorderSize = 0;
+            btnBfs.FlatStyle = FlatStyle.Flat;
+            btnBfs.ForeColor = Color.White;
+            btnBfs.Location = new Point(101, 45);
+            btnBfs.Margin = new Padding(3, 4, 3, 4);
+            btnBfs.Name = "btnBfs";
+            btnBfs.Size = new Size(70, 31);
+            btnBfs.TabIndex = 23;
+            btnBfs.Text = "BFS Çalıştır";
+            btnBfs.UseVisualStyleBackColor = false;
+            btnBfs.Click += btnBfs_Click;
+            // 
+            // grpDugumBilgi
+            // 
+            grpDugumBilgi.Controls.Add(lblSeciliDugumBilgi);
+            grpDugumBilgi.ForeColor = Color.White;
+            grpDugumBilgi.Location = new Point(670, 10);
+            grpDugumBilgi.Name = "grpDugumBilgi";
+            grpDugumBilgi.Size = new Size(244, 185);
+            grpDugumBilgi.TabIndex = 22;
+            grpDugumBilgi.TabStop = false;
+            grpDugumBilgi.Text = "Düğüm Bilgisi";
+            // 
+            // lblSeciliDugumBilgi
+            // 
+            lblSeciliDugumBilgi.AutoSize = true;
+            lblSeciliDugumBilgi.Location = new Point(6, 25);
+            lblSeciliDugumBilgi.Name = "lblSeciliDugumBilgi";
+            lblSeciliDugumBilgi.Size = new Size(124, 20);
+            lblSeciliDugumBilgi.TabIndex = 0;
+            lblSeciliDugumBilgi.Text = "Seçili Düğüm Yok";
+            // 
+            // btnJsonYukle
+            // 
+            btnJsonYukle.BackColor = Color.FromArgb(51, 65, 85);
+            btnJsonYukle.FlatAppearance.BorderSize = 0;
+            btnJsonYukle.FlatStyle = FlatStyle.Flat;
+            btnJsonYukle.ForeColor = Color.White;
+            btnJsonYukle.Location = new Point(796, 203);
+            btnJsonYukle.Name = "btnJsonYukle";
+            btnJsonYukle.Size = new Size(118, 29);
+            btnJsonYukle.TabIndex = 20;
+            btnJsonYukle.Text = "Dosya Yükle";
+            btnJsonYukle.UseVisualStyleBackColor = false;
+            btnJsonYukle.Click += btnJsonYukle_Click;
+            // 
+            // btnJsonKaydet
+            // 
+            btnJsonKaydet.BackColor = Color.FromArgb(51, 65, 85);
+            btnJsonKaydet.FlatAppearance.BorderSize = 0;
+            btnJsonKaydet.FlatStyle = FlatStyle.Flat;
+            btnJsonKaydet.ForeColor = Color.White;
+            btnJsonKaydet.Location = new Point(670, 203);
+            btnJsonKaydet.Name = "btnJsonKaydet";
+            btnJsonKaydet.Size = new Size(120, 29);
+            btnJsonKaydet.TabIndex = 19;
+            btnJsonKaydet.Text = "Farklı Kaydet";
+            btnJsonKaydet.UseVisualStyleBackColor = false;
+            btnJsonKaydet.Click += btnJsonKaydet_Click;
+            // 
+            // rtbCikti
+            // 
+            rtbCikti.BackColor = Color.FromArgb(15, 23, 42);
+            rtbCikti.BorderStyle = BorderStyle.None;
+            rtbCikti.Font = new Font("Consolas", 9F);
+            rtbCikti.ForeColor = Color.LightGreen;
+            rtbCikti.Location = new Point(191, 10);
+            rtbCikti.Name = "rtbCikti";
+            rtbCikti.Size = new Size(473, 185);
+            rtbCikti.TabIndex = 18;
+            rtbCikti.Text = "";
+            // 
+            // btnKomsulukListele
+            // 
+            btnKomsulukListele.BackColor = Color.FromArgb(51, 65, 85);
+            btnKomsulukListele.FlatAppearance.BorderSize = 0;
+            btnKomsulukListele.FlatStyle = FlatStyle.Flat;
+            btnKomsulukListele.ForeColor = Color.White;
+            btnKomsulukListele.Location = new Point(191, 203);
+            btnKomsulukListele.Name = "btnKomsulukListele";
+            btnKomsulukListele.Size = new Size(125, 29);
+            btnKomsulukListele.TabIndex = 17;
+            btnKomsulukListele.Text = "Komşuluk Listesi";
+            btnKomsulukListele.UseVisualStyleBackColor = false;
+            btnKomsulukListele.Click += btnKomsulukListele_Click;
+            // 
+            // pnlCanvas
+            // 
+            pnlCanvas.BackColor = Color.FromArgb(15, 23, 42);
+            pnlCanvas.BorderStyle = BorderStyle.FixedSingle;
+            pnlCanvas.Dock = DockStyle.Fill;
+            pnlCanvas.Location = new Point(260, 0);
+            pnlCanvas.Name = "pnlCanvas";
+            pnlCanvas.Size = new Size(926, 529);
+            pnlCanvas.TabIndex = 21;
+            pnlCanvas.Paint += pnlCanvas_Paint;
+            pnlCanvas.MouseClick += pnlCanvas_MouseClick;
+            // 
+            // AnaForm
+            // 
+            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleMode = AutoScaleMode.Font;
+            BackColor = Color.FromArgb(30, 41, 59);
+            ClientSize = new Size(1186, 775);
+            Controls.Add(pnlCanvas);
+            Controls.Add(pnlBottom);
+            Controls.Add(pnlLeft);
+            Name = "AnaForm";
+            Text = "Sosyal Ağ Analizi";
+            Load += AnaForm_Load;
+            pnlLeft.ResumeLayout(false);
+            pnlLeft.PerformLayout();
+            pnlBottom.ResumeLayout(false);
+            pnlBottom.PerformLayout();
+            grpDugumBilgi.ResumeLayout(false);
+            grpDugumBilgi.PerformLayout();
+            ResumeLayout(false);
+
+        }
+
+        #endregion
+
+        private System.Windows.Forms.Panel pnlLeft;
+        private System.Windows.Forms.Panel pnlBottom;
+        private System.Windows.Forms.Label lblHeaderBaglanti;
+        private System.Windows.Forms.Label lblHeaderDugum;
+        private System.Windows.Forms.Label lblHeaderVeri;
+
+        private System.Windows.Forms.Label lblNodeId;
+        private System.Windows.Forms.TextBox txtDugumId;
+        private System.Windows.Forms.Label lblNodeAd;
+        private System.Windows.Forms.TextBox txtDugumAd;
+        private System.Windows.Forms.Label lblAktiflik;
+        private System.Windows.Forms.TextBox txtAktiflik;
+        private System.Windows.Forms.Label lblEtkilesim;
+        private System.Windows.Forms.TextBox txtEtkilesim;
+        private System.Windows.Forms.Button btnDugumEkle;
+        private System.Windows.Forms.Button btnDugumGuncelle;
+        private System.Windows.Forms.Button btnDugumSil;
+        private System.Windows.Forms.Label lblFrom;
+        private System.Windows.Forms.TextBox txtBaslangicId;
+        private System.Windows.Forms.Label lblTo;
+        private System.Windows.Forms.TextBox txtBitisId;
+        private System.Windows.Forms.Button btnKenarEkle;
+        private System.Windows.Forms.Button btnKenarSil;
+        private System.Windows.Forms.Button btnKomsulukListele;
+        private System.Windows.Forms.RichTextBox rtbCikti;
+        private System.Windows.Forms.Button btnJsonKaydet;
+        private System.Windows.Forms.Button btnJsonYukle;
+        private System.Windows.Forms.Panel pnlCanvas;
+        private System.Windows.Forms.GroupBox grpDugumBilgi;
+        private System.Windows.Forms.Label lblSeciliDugumBilgi;
+        private System.Windows.Forms.Button btnBfs;
+        private System.Windows.Forms.Button btnDfs;
+        private System.Windows.Forms.Button btnDijkstra;
+        private System.Windows.Forms.Button btnAStar;
+        private System.Windows.Forms.Button btnMerkezilik;
+        private System.Windows.Forms.Button btnRenklendir;
+        private System.Windows.Forms.Button btnCiktiTemizle;
+    }
+}
+
+
+namespace SosyalAgGrafAnalizi
+{
+    internal static class Program
+    {
+        /// <summary>
+        
+        /// </summary>
+        [STAThread]
+        static void Main()
+        {
+            // To customize application configuration such as set high DPI settings or default font,
+            // see https://aka.ms/applicationconfiguration.
+            ApplicationConfiguration.Initialize();
+            Application.Run(new AnaForm());
+        }
+    }
+}
+
