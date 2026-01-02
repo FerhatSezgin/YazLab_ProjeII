@@ -153,6 +153,18 @@ Arayüz tamamen etkileşimlidir ve analiz sonuçları anlık olarak görselleşt
 
 ---
 
+## Uygulama Arayüzünden Örnekler
+
+### Genel Ağ Görünümü
+![Genel Ağ Görünümü](Screenshot_1.png)
+
+---
+
+### A* En Kısa Yol Analizi
+![A* En Kısa Yol Analizi](Screenshot_3.png)
+
+---
+
 ## 8. Projenin Kazanımları
 
 - Graf teorisi uygulamalı olarak öğrenilmiştir  
